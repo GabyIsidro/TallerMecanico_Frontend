@@ -30,6 +30,43 @@ function Servicios() {
         return;
     }
 
+    const servicioAEnviar = {
+        ...nuevoServicio,
+        precioA: parseFloat(nuevoServicio.precioA) || 0,
+        precioB: parseFloat(nuevoServicio.precioB) || 0
+    };
+
+    const url = modoEdicion ? `http://localhost:8080/api/servicios/${idEditar}` : 'http://localhost:8080/api/servicios';
+    const metodo = modoEdicion ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(servicioAEnviar)
+    })
+    .then(async (res) => {
+        // MAGIA DE DEBUGGING: Si Java dice "Fallo", leemos su respuesta exacta
+        if (!res.ok) {
+            const mensajeErrorBackend = await res.text();
+            throw new Error(`Código ${res.status} - Detalle: ${mensajeErrorBackend}`);
+        }
+        return res.json(); // Si todo sale bien, seguimos normal
+    })
+    .then(() => {
+        alert(modoEdicion ? "¡Precio actualizado!" : "¡Servicio creado!");
+        terminarEdicion();
+        cargarServicios();
+    })
+    .catch(err => {
+        console.error("Error completo:", err);
+        // Ahora la alerta nos dirá el motivo real
+        alert("⚠️ FALLÓ EL SERVIDOR:\n\n" + err.message);
+    });
+  }
+
+  const manejarActualizacion = () => {
+    
+
     const url = modoEdicion ? `http://localhost:8080/api/servicios/${idEditar}` : 'http://localhost:8080/api/servicios';
     const metodo = modoEdicion ? 'PUT' : 'POST';
 

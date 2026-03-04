@@ -4,7 +4,7 @@ function Clientes() {
   const [clientes, setClientes] = useState([])
   const [modoEdicion, setModoEdicion] = useState(false)
   const [idEditar, setIdEditar] = useState(null)
-  const [busqueda, setBusqueda] = useState('') // <--- NUEVO: Estado para el buscador
+  const [busqueda, setBusqueda] = useState('') 
   
   const [nuevoCliente, setNuevoCliente] = useState({
     nombre: '',
@@ -38,18 +38,30 @@ function Clientes() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevoCliente)
     })
-    .then(() => {
+    .then(async (res) => {
+        if (!res.ok) {
+            const textoError = await res.text();
+            throw new Error(textoError || "Error en el servidor al guardar el cliente.");
+        }
         alert(modoEdicion ? "¡Cliente actualizado!" : "¡Cliente guardado!");
         terminarEdicion();
         cargarClientes();
     })
-    .catch(err => alert("Error al guardar. Revisa la consola."))
+    .catch(err => alert("⚠️ No se pudo guardar:\n\n" + err.message))
   }
 
   const eliminarCliente = (id) => {
-    if(!confirm("¿Borrar este cliente?")) return;
+    if(!confirm("¿Borrar este cliente?\n\nOJO: Si el cliente tiene vehículos registrados, el sistema no te dejará borrarlo.")) return;
+    
     fetch(`http://localhost:8080/api/clientes/${id}`, { method: 'DELETE' })
-    .then(() => cargarClientes())
+    .then(async (res) => {
+        if (!res.ok) {
+            throw new Error("No se puede borrar. Es casi seguro que este cliente tiene vehículos u órdenes de trabajo asociados en el sistema.");
+        }
+        cargarClientes();
+        alert("Cliente eliminado correctamente.");
+    })
+    .catch(err => alert("⚠️ Error al borrar:\n\n" + err.message))
   }
 
   const iniciarEdicion = (cliente) => {
@@ -69,7 +81,6 @@ function Clientes() {
     setNuevoCliente({ nombre: '', apellido: '', telefono: '', email: '' });
   }
 
-  // <--- NUEVO: Lógica de filtrado --->
   const clientesFiltrados = clientes.filter(c => {
       const termino = busqueda.toLowerCase();
       const nombreCompleto = `${c.nombre} ${c.apellido}`.toLowerCase();
@@ -103,7 +114,6 @@ function Clientes() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
             <h3 style={{ margin: 0 }}>👥 Cartera de Clientes</h3>
             
-            {/* <--- NUEVO: Input de búsqueda ---> */}
             <input 
                 type="text" 
                 placeholder="🔍 Buscar por nombre o teléfono..." 

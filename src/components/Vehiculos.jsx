@@ -45,6 +45,34 @@ function Vehiculos() {
         return;
     }
 
+    // MAGIA AQUÍ: Convertimos los KM a números o los dejamos en 'null' si están vacíos
+    const autoAEnviar = {
+        ...nuevoAuto,
+        kilometraje: nuevoAuto.kilometraje ? parseInt(nuevoAuto.kilometraje) : null,
+        proximoServiceKm: nuevoAuto.proximoServiceKm ? parseInt(nuevoAuto.proximoServiceKm) : null,
+        anio: parseInt(nuevoAuto.anio) || 2024
+    };
+
+    const url = modoEdicion ? `http://localhost:8080/api/vehiculos/${idEditar}` : 'http://localhost:8080/api/vehiculos';
+    const metodo = modoEdicion ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(autoAEnviar)
+    })
+    .then(async (res) => {
+        if (!res.ok) throw new Error("Error del servidor");
+        alert(modoEdicion ? "¡Actualizado!" : "¡Guardado!");
+        terminarEdicion();
+        cargarVehiculos();
+    })
+    .catch(err => alert("⚠️ Error al guardar el vehículo."));
+  }
+
+  const manejarActualizacion = () => {
+    
+
     const url = modoEdicion ? `http://localhost:8080/api/vehiculos/${idEditar}` : 'http://localhost:8080/api/vehiculos';
     const metodo = modoEdicion ? 'PUT' : 'POST';
 
